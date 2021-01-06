@@ -1,9 +1,9 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.config.TestConfig;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.CertificateService;
-import com.epam.esm.service.impl.com.epam.esm.config.TestConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,8 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.config.TestConfig;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
-import com.epam.esm.service.impl.com.epam.esm.config.TestConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
