@@ -1,26 +1,26 @@
 package com.epam.esm.dao.impl;
 
-import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
-import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
 
 @Component
 public class TagDaoImpl implements TagDao {
 
-  @Autowired private JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
+
+  public TagDaoImpl(JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
   @Override
   public Tag create(Tag tag) {
@@ -34,17 +34,16 @@ public class TagDaoImpl implements TagDao {
           return ps;
         },
         keyHolder);
-    tag.setId(((BigInteger) keyHolder.getKey()).longValue());
+    tag.setId(keyHolder.getKey().longValue());
     return tag;
   }
 
   @Override
-  public Tag read(long id) {
-    return jdbcTemplate.queryForObject(
-        "SELECT id,name FROM tag WHERE id=?",
-        new Object[] {id},
-        new int[] {Types.BIGINT},
-        new BeanPropertyRowMapper<>(Tag.class));
+  public Optional<Tag> read(long id) {
+    return jdbcTemplate
+        .queryForStream(
+            "SELECT id,name FROM tag WHERE id=?", new BeanPropertyRowMapper<>(Tag.class), id)
+        .findAny();
   }
 
   @Override

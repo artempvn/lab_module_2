@@ -3,7 +3,6 @@ package com.epam.esm.dao.impl;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -11,18 +10,18 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigInteger;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Component
 public class CertificateDaoImpl implements CertificateDao {
-  @Autowired private JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-  public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+  public CertificateDaoImpl(JdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;
   }
 
@@ -44,26 +43,28 @@ public class CertificateDaoImpl implements CertificateDao {
           return ps;
         },
         keyHolder);
-    certificate.setId(((BigInteger) keyHolder.getKey()).longValue());
+    certificate.setId(keyHolder.getKey().longValue());
     return certificate;
   }
 
   @Override
-  public Certificate read(long id) {
-    return jdbcTemplate.queryForObject(
-        "SELECT id,name,description,price,duration, create_date,last_update_date FROM gift_certificates WHERE id=?",
-        (rs, rowNum) -> {
-          Certificate certificate = new Certificate();
-          certificate.setId(rs.getLong(1));
-          certificate.setName(rs.getString(2));
-          certificate.setDescription(rs.getString(3));
-          certificate.setPrice(rs.getDouble(4));
-          certificate.setDuration(rs.getInt(5));
-          certificate.setCreateDate(rs.getObject(6, LocalDateTime.class));
-          certificate.setLastUpdateDate(rs.getObject(7, LocalDateTime.class));
-          return certificate;
-        },
-        id);
+  public Optional<Certificate> read(long id) {
+    return jdbcTemplate
+        .queryForStream(
+            "SELECT id,name,description,price,duration, create_date,last_update_date FROM gift_certificates WHERE id=?",
+            (rs, rowNum) -> {
+              Certificate certificate = new Certificate();
+              certificate.setId(rs.getLong(1));
+              certificate.setName(rs.getString(2));
+              certificate.setDescription(rs.getString(3));
+              certificate.setPrice(rs.getDouble(4));
+              certificate.setDuration(rs.getInt(5));
+              certificate.setCreateDate(rs.getObject(6, LocalDateTime.class));
+              certificate.setLastUpdateDate(rs.getObject(7, LocalDateTime.class));
+              return certificate;
+            },
+            id)
+        .findAny();
   }
 
   @Override
