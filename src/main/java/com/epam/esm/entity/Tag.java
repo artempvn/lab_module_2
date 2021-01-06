@@ -8,6 +8,13 @@ public class Tag {
   private long id;
   private String name;
 
+  public Tag() {}
+
+  public Tag(long id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
   public long getId() {
     return id;
   }
@@ -31,5 +38,21 @@ public class Tag {
     sb.append(", name='").append(name).append('\'');
     sb.append('}');
     return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Tag tag = (Tag) o;
+    if (id != tag.id) return false;
+    return name != null ? name.equals(tag.name) : tag.name == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int) (id ^ (id >>> 32));
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    return result;
   }
 }

@@ -4,12 +4,13 @@ import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.Tag;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CertificateDao {
 
   Certificate create(Certificate certificate);
 
-  Certificate read(long id);
+  Optional<Certificate> read(long id);
 
   List<Certificate> readAll();
 

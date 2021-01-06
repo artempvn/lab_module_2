@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TagService {
 
-  void create(Tag tag);
+  Tag create(Tag tag);
 
   Tag read(long id);
 

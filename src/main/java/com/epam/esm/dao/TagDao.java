@@ -9,7 +9,7 @@ public interface TagDao {
 
   Tag create(Tag tag);
 
-  Tag read(long id);
+  Optional<Tag> read(long id);
 
   List<Tag> readAll();
 

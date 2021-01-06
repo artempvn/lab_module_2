@@ -3,7 +3,6 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,16 +10,20 @@ import java.util.List;
 @Component
 public class TagServiceImpl implements TagService {
 
-  @Autowired private TagDao tagDao;
+  private final TagDao tagDao;
+
+  public TagServiceImpl(TagDao tagDao) {
+    this.tagDao = tagDao;
+  }
 
   @Override
-  public void create(Tag tag) {
-    tagDao.create(tag);
+  public Tag create(Tag tag) {
+    return tagDao.create(tag);
   }
 
   @Override
   public Tag read(long id) {
-    return tagDao.read(id);
+    return tagDao.read(id).orElse(null);
   }
 
   @Override
@@ -30,7 +33,7 @@ public class TagServiceImpl implements TagService {
 
   @Override
   public void delete(long id) {
-    //TODO delete dependency
+    // TODO delete dependency
     tagDao.delete(id);
   }
 }
