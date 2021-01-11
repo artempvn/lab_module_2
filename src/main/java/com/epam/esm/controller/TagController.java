@@ -3,9 +3,11 @@ package com.epam.esm.controller;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/tags")
@@ -18,8 +20,9 @@ public class TagController {
   }
 
   @GetMapping("/{id}")
-  public Tag readTag(@PathVariable long id) {
-    return tagService.read(id);
+  public ResponseEntity<Tag> readTag(@PathVariable long id) {
+    Optional<Tag> tag = tagService.read(id);
+    return tag.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping

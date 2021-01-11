@@ -11,6 +11,11 @@ repositories {
 }
 
 dependencies {
+    implementation project(':util')
+    implementation project(':api')
+    implementation project(':entity')
+    implementation project(':dao')
+    implementation project(':service')
     implementation group: 'org.springframework', name: 'spring-core', version: '5.3.2'
     implementation group: 'org.springframework', name: 'spring-context', version: '5.3.2'
     implementation group: 'org.springframework', name: 'spring-aop', version: '5.3.2'
@@ -29,6 +34,8 @@ dependencies {
     testImplementation group: 'org.springframework', name: 'spring-test', version: '5.3.2'
     testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.7.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.7.0'
+    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.7.0'
 }
 
 test {

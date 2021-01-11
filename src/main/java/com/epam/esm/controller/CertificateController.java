@@ -3,9 +3,11 @@ package com.epam.esm.controller;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.service.CertificateService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/certificates")
@@ -18,8 +20,9 @@ public class CertificateController {
   }
 
   @GetMapping("/{id}")
-  public Certificate readCertificate(@PathVariable long id) {
-    return certificateService.read(id);
+  public ResponseEntity<Certificate> readCertificate(@PathVariable long id) {
+    Optional<Certificate> certificate = certificateService.read(id);
+    return certificate.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
 
   @GetMapping
@@ -35,9 +38,10 @@ public class CertificateController {
 
   @PutMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public Certificate updateCertificate(
+  public ResponseEntity<Certificate> updateCertificate(
       @PathVariable long id, @RequestBody Certificate certificate) {
-    return certificateService.update(id, certificate);
+    Optional<Certificate> updatedCertificate = certificateService.update(id, certificate);
+    return updatedCertificate.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}")

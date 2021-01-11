@@ -28,15 +28,3 @@ CREATE TABLE IF NOT EXISTS `certificates_tags` (
     REFERENCES `tag` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
-
-INSERT INTO tag(name) VALUES ('first tag');
-INSERT INTO tag(name) VALUES ('second tag');
-INSERT INTO tag(name) VALUES ('third tag');
-INSERT INTO tag(name) VALUES ('fourth tag');
-
-INSERT INTO gift_certificates(name,description,price,duration, create_date,last_update_date) VALUES ('first certificate','first description',1.33,5,'2020-12-25T15:0:0','2020-12-30T16:30:0');
-INSERT INTO gift_certificates(name,description,price,duration, create_date,last_update_date) VALUES ('second certificate','second description',2.33,10,'2020-12-25T15:0:0','2021-1-5T14:0:0');
-
-INSERT INTO certificates_tags(tag_id,certificate_id) VALUES (1,1);
-INSERT INTO certificates_tags(tag_id,certificate_id) VALUES (2,1);
-INSERT INTO certificates_tags(tag_id,certificate_id) VALUES (2,2);

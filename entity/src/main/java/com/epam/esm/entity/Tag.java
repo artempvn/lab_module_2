@@ -5,21 +5,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class Tag {
 
-  private long id;
+  private Long id;
   private String name;
 
   public Tag() {}
 
-  public Tag(long id, String name) {
-    this.id = id;
-    this.name = name;
+  private Tag(Builder builder) {
+    id = builder.id;
+    name = builder.name;
   }
 
-  public long getId() {
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public Long getId() {
     return id;
   }
 
-  public void setId(long id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
@@ -54,5 +58,26 @@ public class Tag {
     int result = (int) (id ^ (id >>> 32));
     result = 31 * result + (name != null ? name.hashCode() : 0);
     return result;
+  }
+
+  public static class Builder {
+    private Long id;
+    private String name;
+
+    private Builder() {}
+
+    public Builder id(Long id) {
+      this.id = id;
+      return this;
+    }
+
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public Tag build() {
+      return new Tag(this);
+    }
   }
 }

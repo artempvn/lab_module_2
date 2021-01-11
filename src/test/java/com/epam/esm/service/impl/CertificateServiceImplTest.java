@@ -1,120 +1,153 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.config.TestConfig;
+import com.epam.esm.dao.CertificateDao;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.CertificateService;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import com.epam.esm.util.ReflectionUtil;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestConfig.class)
 class CertificateServiceImplTest {
 
-  @Autowired CertificateService certificateService;
-  static Certificate certificate1;
-  static Certificate certificate2;
-  static Certificate certificate3;
-  static Tag tag1;
-  static Tag tag2;
-  static Tag tag3;
-  static LocalDateTime time1;
-  static LocalDateTime time2;
-  static LocalDateTime time3;
-  static LocalDateTime time4;
+  TagDao tagDao = Mockito.mock(TagDao.class);
+  CertificateDao certificateDao = Mockito.mock(CertificateDao.class);
+  CertificateService certificateService =
+      new CertificateServiceImpl(certificateDao, tagDao, new ReflectionUtil());
 
-  @BeforeAll
-  static void setUp() {
-    time1 = LocalDateTime.of(2020, 12, 25, 15, 0, 0);
-    time2 = LocalDateTime.of(2020, 12, 30, 16, 30, 0);
-    time3 = LocalDateTime.of(2021, 1, 5, 14, 0, 0);
-    tag1 = new Tag(1, "first tag");
-    tag2 = new Tag(2, "second tag");
-    tag3 = new Tag(3, "third tag");
-    certificate1 =
-        new Certificate(
-            1,
-            "first certificate",
-            "first description",
-            1.33,
-            5,
-            time1,
-            time2,
-            Arrays.asList(tag1, tag2));
-    certificate2 =
-        new Certificate(
-            2,
-            "second certificate",
-            "second description",
-            2.33,
-            10,
-            time1,
-            time3,
-            Arrays.asList(tag2));
-    certificate3 =
-        new Certificate(
-            3,
-            "third certificate",
-            "third description",
-            3.33,
-            15,
-            time3,
-            time3,
-            Arrays.asList(tag2, tag3));
+  @Test
+  void createNoTags() {
+    Mockito.when(certificateDao.create(Mockito.any())).thenReturn(takeCertificate1());
+    certificateService.create(takeCertificate1());
+    Mockito.verify(certificateDao).create(takeCertificate1());
+    Mockito.verify(tagDao, Mockito.never()).read(Mockito.any());
+    Mockito.verify(tagDao, Mockito.never()).create(Mockito.any());
+    Mockito.verify(certificateDao, Mockito.never()).addTag(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
-  void create() {
-    Certificate someCertificate =
-        new Certificate(
-            -1,
-            "third certificate",
-            "third description",
-            3.33,
-            15,
-            time3,
-            time3,
-            Arrays.asList(tag2, tag3));
-    assertEquals(certificateService.create(someCertificate), certificate3);
+  void createWithTagsExisted() {
+    Mockito.when(certificateDao.create(Mockito.any())).thenReturn(takeCertificate2());
+    Mockito.when(tagDao.read(Mockito.any())).thenReturn(Optional.of(takeTag1()));
+    certificateService.create(takeCertificate1());
+    Mockito.verify(certificateDao).create(takeCertificate1());
+    Mockito.verify(tagDao).read(Mockito.any());
+    Mockito.verify(tagDao, Mockito.never()).create(Mockito.any());
+    Mockito.verify(certificateDao).addTag(Mockito.anyLong(), Mockito.anyLong());
   }
 
-  @ParameterizedTest
-  @MethodSource("readDataProvider")
-  void read(long actualId, Certificate expected) {
-    assertEquals(certificateService.read(actualId), expected);
+  @Test
+  void createWithTagsNotExisted() {
+    Mockito.when(certificateDao.create(Mockito.any())).thenReturn(takeCertificate2());
+    Mockito.when(tagDao.read(Mockito.any())).thenReturn(Optional.empty());
+    Mockito.when(tagDao.create(Mockito.any())).thenReturn(takeTag1());
+    certificateService.create(takeCertificate1());
+    Mockito.verify(certificateDao).create(takeCertificate1());
+    Mockito.verify(tagDao).read(Mockito.any());
+    Mockito.verify(tagDao).create(Mockito.any());
+    Mockito.verify(certificateDao).addTag(Mockito.anyLong(), Mockito.anyLong());
   }
 
-  static Stream<Arguments> readDataProvider() {
-    return Stream.of(arguments(1, certificate1), arguments(6, null));
+  @Test
+  void readExisted() {
+    Mockito.when(certificateDao.read(Mockito.anyLong()))
+        .thenReturn(Optional.of(takeCertificate1()));
+    certificateService.read(1L);
+    Mockito.verify(certificateDao).read(1L);
+    Mockito.verify(certificateDao).readBondingTags(1L);
+  }
+
+  @Test
+  void readNotExisted() {
+    Mockito.when(certificateDao.read(Mockito.anyLong())).thenReturn(Optional.empty());
+    certificateService.read(1L);
+    Mockito.verify(certificateDao).read(1L);
+    Mockito.verify(certificateDao, Mockito.never()).readBondingTags(1L);
   }
 
   @Test
   void readAll() {
-    assertEquals(certificateService.readAll(), Arrays.asList(certificate1, certificate2));
+    Mockito.when(certificateDao.readAll()).thenReturn(List.of(takeCertificate1()));
+    certificateService.readAll();
+    Mockito.verify(certificateDao).readAll();
+    Mockito.verify(certificateDao).readBondingTags(Mockito.anyLong());
   }
 
-  @Disabled("in progress")
   @Test
-  void delete() {}
+  void updateNotExisted() {
+    Mockito.when(certificateDao.read(1L)).thenReturn(Optional.empty());
+    certificateService.update(1, takeCertificate1());
+    Mockito.verify(certificateDao).read(1);
+    Mockito.verify(certificateDao, Mockito.never()).update(takeCertificate1());
+    Mockito.verify(certificateDao, Mockito.never())
+        .deleteBondingTagsByCertificateId(Mockito.anyLong());
+    Mockito.verify(tagDao, Mockito.never()).read(Mockito.any());
+    Mockito.verify(tagDao, Mockito.never()).create(Mockito.any());
+    Mockito.verify(certificateDao, Mockito.never()).addTag(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(certificateDao, Mockito.never()).readBondingTags(Mockito.anyLong());
+  }
 
-  @Disabled("in progress")
   @Test
-  void update() {}
+  void updateExistedWithTags() {
+    Mockito.when(certificateDao.read(1L)).thenReturn(Optional.of(takeCertificate1()));
+    Mockito.when(tagDao.read(Mockito.any())).thenReturn(Optional.of(takeTag1()));
+    certificateService.update(1, takeCertificate2());
+    Mockito.verify(certificateDao).read(1);
+    Mockito.verify(certificateDao).update(Mockito.any());
+    Mockito.verify(certificateDao).deleteBondingTagsByCertificateId(Mockito.anyLong());
+    Mockito.verify(tagDao).read(Mockito.any());
+    Mockito.verify(tagDao, Mockito.never()).create(Mockito.any());
+    Mockito.verify(certificateDao).addTag(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(certificateDao, Mockito.never()).readBondingTags(Mockito.anyLong());
+  }
+
+  @Test
+  void updateExistedNoTags() {
+    Mockito.when(certificateDao.read(1L)).thenReturn(Optional.of(takeCertificate1()));
+    certificateService.update(1, takeCertificate3());
+    Mockito.verify(certificateDao).read(1);
+    Mockito.verify(certificateDao).update(Mockito.any());
+    Mockito.verify(certificateDao, Mockito.never())
+        .deleteBondingTagsByCertificateId(Mockito.anyLong());
+    Mockito.verify(tagDao, Mockito.never()).read(Mockito.any());
+    Mockito.verify(tagDao, Mockito.never()).create(Mockito.any());
+    Mockito.verify(certificateDao, Mockito.never()).addTag(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(certificateDao).readBondingTags(Mockito.anyLong());
+  }
+
+  @Test
+  void delete() {
+    certificateService.delete(1L);
+    Mockito.verify(certificateDao).deleteBondingTagsByCertificateId(1L);
+    Mockito.verify(certificateDao).delete(1L);
+  }
+
+  private static Tag takeTag1() {
+    return Tag.builder().id(1L).name("first tag").build();
+  }
+
+  private static Certificate takeCertificate1() {
+    return Certificate.builder()
+        .id(1L)
+        .name("first certificate")
+        .description("first description")
+        .price(1.33)
+        .duration(5)
+        .createDate(LocalDateTime.of(2020, 12, 25, 15, 0, 0))
+        .lastUpdateDate(LocalDateTime.of(2020, 12, 30, 16, 30, 0))
+        .build();
+  }
+
+  private static Certificate takeCertificate2() {
+    return Certificate.builder().id(1L).duration(20).tags(List.of(new Tag())).build();
+  }
+
+  private static Certificate takeCertificate3() {
+    return Certificate.builder().id(1L).duration(20).build();
+  }
 }

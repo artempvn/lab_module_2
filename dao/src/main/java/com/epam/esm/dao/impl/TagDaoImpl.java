@@ -15,6 +15,11 @@ import java.util.Optional;
 
 @Component
 public class TagDaoImpl implements TagDao {
+  private static final String SQL_CREATE = "INSERT INTO tag(name) VALUES (?)";
+  private static final String SQL_READ = "SELECT id,name FROM tag WHERE id=?";
+  private static final String SQL_READ_ALL = "SELECT id,name FROM tag";
+  private static final String SQL_DELETE = "DELETE FROM tag WHERE id=?";
+  private static final String SQL_READ_BY_NAME = "SELECT id,name FROM tag WHERE name=?";
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -28,8 +33,7 @@ public class TagDaoImpl implements TagDao {
     jdbcTemplate.update(
         connection -> {
           PreparedStatement ps =
-              connection.prepareStatement(
-                  "INSERT INTO tag(name) VALUES (?);", Statement.RETURN_GENERATED_KEYS);
+              connection.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
           ps.setString(1, tag.getName());
           return ps;
         },
@@ -41,28 +45,24 @@ public class TagDaoImpl implements TagDao {
   @Override
   public Optional<Tag> read(long id) {
     return jdbcTemplate
-        .queryForStream(
-            "SELECT id,name FROM tag WHERE id=?", new BeanPropertyRowMapper<>(Tag.class), id)
+        .queryForStream(SQL_READ, new BeanPropertyRowMapper<>(Tag.class), id)
         .findAny();
   }
 
   @Override
   public List<Tag> readAll() {
-    return jdbcTemplate.query("SELECT id,name FROM tag", new BeanPropertyRowMapper<>(Tag.class));
+    return jdbcTemplate.query(SQL_READ_ALL, new BeanPropertyRowMapper<>(Tag.class));
   }
 
   @Override
   public void delete(long id) {
-    jdbcTemplate.update("DELETE FROM tag WHERE id=?", id);
+    jdbcTemplate.update(SQL_DELETE, id);
   }
 
   @Override
   public Optional<Tag> read(Tag tag) {
     return jdbcTemplate
-        .queryForStream(
-            "SELECT id,name FROM tag WHERE name=?",
-            new BeanPropertyRowMapper<>(Tag.class),
-            tag.getName())
+        .queryForStream(SQL_READ_BY_NAME, new BeanPropertyRowMapper<>(Tag.class), tag.getName())
         .findAny();
   }
 }

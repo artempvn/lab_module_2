@@ -20,5 +20,9 @@ public interface CertificateDao {
 
   void addTag(long certificateId, long tagId);
 
-  List<Tag> readTags(long certificateId);
+  List<Tag> readBondingTags(long certificateId);
+
+  void deleteBondingTagsByTagId(long certificateId);
+
+  void deleteBondingTagsByCertificateId(long certificateId);
 }

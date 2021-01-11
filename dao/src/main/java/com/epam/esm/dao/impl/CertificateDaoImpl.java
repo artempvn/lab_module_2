@@ -19,6 +19,23 @@ import java.util.Optional;
 @Repository
 @Component
 public class CertificateDaoImpl implements CertificateDao {
+  private static final String SQL_CREATE =
+      "INSERT INTO gift_certificates(name,description,price,duration, create_date,last_update_date) VALUES (?,?,?,?,?,?)";
+  private static final String SQL_READ =
+      "SELECT id,name,description,price,duration, create_date,last_update_date FROM gift_certificates WHERE id=?";
+  private static final String SQL_READ_ALL =
+      "SELECT id,name,description,price,duration, create_date,last_update_date FROM gift_certificates";
+  private static final String SQL_UPDATE =
+      "UPDATE gift_certificates SET name=?,description=?,price=?,duration=?, create_date=?,last_update_date=? WHERE id=?";
+  private static final String SQL_DELETE = "DELETE FROM gift_certificates WHERE id=?";
+  private static final String SQL_ADD_TAG =
+      "INSERT INTO certificates_tags(tag_id,certificate_id) VALUES (?,?)";
+  private static final String SQL_READ_BONDING_TAGS =
+      "SELECT id,name FROM tag JOIN certificates_tags ON tag_id=id WHERE certificate_id=?";
+  private static final String SQL_DELETE_BONDING_TAGS_BY_TAG_ID =
+      "DELETE FROM certificates_tags WHERE tag_id=?";
+  private static final String SQL_DELETE_BONDING_TAGS_BY_CERTIFICATE_ID =
+      "DELETE FROM certificates_tags WHERE certificate_id=?";
   private final JdbcTemplate jdbcTemplate;
 
   public CertificateDaoImpl(JdbcTemplate jdbcTemplate) {
@@ -31,9 +48,7 @@ public class CertificateDaoImpl implements CertificateDao {
     jdbcTemplate.update(
         connection -> {
           PreparedStatement ps =
-              connection.prepareStatement(
-                  "INSERT INTO gift_certificates(name,description,price,duration, create_date,last_update_date) VALUES (?,?,?,?,?,?);",
-                  Statement.RETURN_GENERATED_KEYS);
+              connection.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
           ps.setString(1, certificate.getName());
           ps.setString(2, certificate.getDescription());
           ps.setDouble(3, certificate.getPrice());
@@ -51,7 +66,7 @@ public class CertificateDaoImpl implements CertificateDao {
   public Optional<Certificate> read(long id) {
     return jdbcTemplate
         .queryForStream(
-            "SELECT id,name,description,price,duration, create_date,last_update_date FROM gift_certificates WHERE id=?",
+            SQL_READ,
             (rs, rowNum) -> {
               Certificate certificate = new Certificate();
               certificate.setId(rs.getLong(1));
@@ -70,7 +85,7 @@ public class CertificateDaoImpl implements CertificateDao {
   @Override
   public List<Certificate> readAll() {
     return jdbcTemplate.query(
-        "SELECT id,name,description,price,duration, create_date,last_update_date FROM gift_certificates",
+        SQL_READ_ALL,
         (rs, rowNum) -> {
           Certificate certificate = new Certificate();
           certificate.setId(rs.getLong(1));
@@ -87,7 +102,7 @@ public class CertificateDaoImpl implements CertificateDao {
   @Override
   public void update(Certificate certificate) {
     jdbcTemplate.update(
-        "UPDATE gift_certificates SET name=?,description=?,price=?,duration=?, create_date=?,last_update_date=? WHERE id=?;",
+        SQL_UPDATE,
         certificate.getName(),
         certificate.getDescription(),
         certificate.getPrice(),
@@ -99,20 +114,27 @@ public class CertificateDaoImpl implements CertificateDao {
 
   @Override
   public void delete(long id) {
-    jdbcTemplate.update("DELETE FROM gift_certificates WHERE id=?", id);
+    jdbcTemplate.update(SQL_DELETE, id);
   }
 
   @Override
   public void addTag(long tagId, long certificateId) {
-    jdbcTemplate.update(
-        "INSERT INTO certificates_tags(tag_id,certificate_id) VALUES (?,?);", tagId, certificateId);
+    jdbcTemplate.update(SQL_ADD_TAG, tagId, certificateId);
   }
 
   @Override
-  public List<Tag> readTags(long certificateId) {
+  public List<Tag> readBondingTags(long certificateId) {
     return jdbcTemplate.query(
-        "SELECT id,name FROM tag JOIN certificates_tags ON tag_id=id WHERE certificate_id=?;",
-        new BeanPropertyRowMapper<>(Tag.class),
-        certificateId);
+        SQL_READ_BONDING_TAGS, new BeanPropertyRowMapper<>(Tag.class), certificateId);
+  }
+
+  @Override
+  public void deleteBondingTagsByTagId(long tagId) {
+    jdbcTemplate.update(SQL_DELETE_BONDING_TAGS_BY_TAG_ID, tagId);
+  }
+
+  @Override
+  public void deleteBondingTagsByCertificateId(long certificateId) {
+    jdbcTemplate.update(SQL_DELETE_BONDING_TAGS_BY_CERTIFICATE_ID, certificateId);
   }
 }

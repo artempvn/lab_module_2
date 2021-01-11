@@ -7,17 +7,16 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
 @Component
 public class Certificate {
 
-  private long id;
+  private Long id;
   private String name;
   private String description;
-  private double price;
-  private int duration;
+  private Double price;
+  private Integer duration;
 
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
@@ -29,34 +28,28 @@ public class Certificate {
 
   private List<Tag> tags;
 
-  public Certificate() {
-    tags = Collections.emptyList();
+  public Certificate() {}
+
+  private Certificate(Builder builder) {
+    id = builder.id;
+    name = builder.name;
+    description = builder.description;
+    price = builder.price;
+    duration = builder.duration;
+    createDate = builder.createDate;
+    lastUpdateDate = builder.lastUpdateDate;
+    tags = builder.tags;
   }
 
-  public Certificate(
-      long id,
-      String name,
-      String description,
-      double price,
-      int duration,
-      LocalDateTime createDate,
-      LocalDateTime lastUpdateDate,
-      List<Tag> tags) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.price = price;
-    this.duration = duration;
-    this.createDate = createDate;
-    this.lastUpdateDate = lastUpdateDate;
-    this.tags = tags;
+  public static Builder builder() {
+    return new Builder();
   }
 
-  public long getId() {
+  public Long getId() {
     return id;
   }
 
-  public void setId(long id) {
+  public void setId(Long id) {
     this.id = id;
   }
 
@@ -76,19 +69,19 @@ public class Certificate {
     this.description = description;
   }
 
-  public double getPrice() {
+  public Double getPrice() {
     return price;
   }
 
-  public void setPrice(double price) {
+  public void setPrice(Double price) {
     this.price = price;
   }
 
-  public int getDuration() {
+  public Integer getDuration() {
     return duration;
   }
 
-  public void setDuration(int duration) {
+  public void setDuration(Integer duration) {
     this.duration = duration;
   }
 
@@ -136,12 +129,12 @@ public class Certificate {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     Certificate that = (Certificate) o;
-    if (id != that.id) return false;
-    if (Double.compare(that.price, price) != 0) return false;
-    if (duration != that.duration) return false;
+    if (id != null ? !id.equals(that.id) : that.id != null) return false;
     if (name != null ? !name.equals(that.name) : that.name != null) return false;
     if (description != null ? !description.equals(that.description) : that.description != null)
       return false;
+    if (price != null ? !price.equals(that.price) : that.price != null) return false;
+    if (duration != null ? !duration.equals(that.duration) : that.duration != null) return false;
     if (createDate != null ? !createDate.equals(that.createDate) : that.createDate != null)
       return false;
     if (lastUpdateDate != null
@@ -152,17 +145,71 @@ public class Certificate {
 
   @Override
   public int hashCode() {
-    int result;
-    long temp;
-    result = (int) (id ^ (id >>> 32));
+    int result = id != null ? id.hashCode() : 0;
     result = 31 * result + (name != null ? name.hashCode() : 0);
     result = 31 * result + (description != null ? description.hashCode() : 0);
-    temp = Double.doubleToLongBits(price);
-    result = 31 * result + (int) (temp ^ (temp >>> 32));
-    result = 31 * result + duration;
+    result = 31 * result + (price != null ? price.hashCode() : 0);
+    result = 31 * result + (duration != null ? duration.hashCode() : 0);
     result = 31 * result + (createDate != null ? createDate.hashCode() : 0);
     result = 31 * result + (lastUpdateDate != null ? lastUpdateDate.hashCode() : 0);
     result = 31 * result + (tags != null ? tags.hashCode() : 0);
     return result;
+  }
+
+  public static class Builder {
+    private Long id;
+    private String name;
+    private String description;
+    private Double price;
+    private Integer duration;
+    private LocalDateTime createDate;
+    private LocalDateTime lastUpdateDate;
+    private List<Tag> tags;
+
+    private Builder() {}
+
+    public Builder id(Long id) {
+      this.id = id;
+      return this;
+    }
+
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public Builder description(String description) {
+      this.description = description;
+      return this;
+    }
+
+    public Builder price(Double price) {
+      this.price = price;
+      return this;
+    }
+
+    public Builder duration(Integer duration) {
+      this.duration = duration;
+      return this;
+    }
+
+    public Builder createDate(LocalDateTime createDate) {
+      this.createDate = createDate;
+      return this;
+    }
+
+    public Builder lastUpdateDate(LocalDateTime lastUpdateDate) {
+      this.lastUpdateDate = lastUpdateDate;
+      return this;
+    }
+
+    public Builder tags(List<Tag> tags) {
+      this.tags = tags;
+      return this;
+    }
+
+    public Certificate build() {
+      return new Certificate(this);
+    }
   }
 }

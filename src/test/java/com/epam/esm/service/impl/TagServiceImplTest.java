@@ -1,69 +1,62 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.config.TestConfig;
+import com.epam.esm.dao.CertificateDao;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.mockito.Mockito;
 
-import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestConfig.class)
 class TagServiceImplTest {
-  @Autowired TagService tagService;
-  static Tag tag1;
-  static Tag tag2;
-  static Tag tag3;
-  static Tag tag4;
-  static Tag tag5;
 
-  @BeforeAll
-  static void setUp() {
-    tag1 = new Tag(1, "first tag");
-    tag2 = new Tag(2, "second tag");
-    tag3 = new Tag(3, "third tag");
-    tag4 = new Tag(4, "fourth tag");
-    tag5 = new Tag(5, "fifth tag");
+  TagDao tagDao = Mockito.mock(TagDao.class);
+  CertificateDao certificateDao = Mockito.mock(CertificateDao.class);
+  TagService tagService = new TagServiceImpl(tagDao, certificateDao);
+
+  @Test
+  void createIfExisted() {
+    Tag tag = takeTag1();
+    Mockito.when(tagDao.readAll()).thenReturn(List.of(tag));
+    Mockito.when(tagDao.read(tag)).thenReturn(Optional.of(tag));
+    tagService.create(tag);
+    Mockito.verify(tagDao, Mockito.never()).create(Mockito.any());
+    Mockito.verify(tagDao).read(tag);
   }
 
   @Test
-  void create() {
-    Tag someTag = new Tag(-1, "fifth tag");
-    assertEquals(tagService.create(someTag), tag5);
+  void createIfNotExisted() {
+    Tag tag = takeTag1();
+    Mockito.when(tagDao.readAll()).thenReturn(Collections.emptyList());
+    Mockito.when(tagDao.create(tag)).thenReturn(tag);
+    tagService.create(tag);
+    Mockito.verify(tagDao).create(tag);
+    Mockito.verify(tagDao, Mockito.never()).read(Mockito.any());
   }
 
-  @ParameterizedTest
-  @MethodSource("readDataProvider")
-  void read(long actualId, Tag expected) {
-    assertEquals(tagService.read(actualId), expected);
-  }
-
-  static Stream<Arguments> readDataProvider() {
-    return Stream.of(arguments(1, tag1), arguments(6, null));
+  @Test
+  void read() {
+    tagService.read(1L);
+    Mockito.verify(tagDao).read(Mockito.anyLong());
   }
 
   @Test
   void readAll() {
-    assertEquals(tagService.readAll(), Arrays.asList(tag1, tag2, tag3, tag4));
+    tagService.readAll();
+    Mockito.verify(tagDao).readAll();
   }
 
   @Test
   void delete() {
-    tagService.delete(4);
-    assertEquals(tagService.readAll(), Arrays.asList(tag1, tag2, tag3));
+    tagService.delete(1L);
+    Mockito.verify(certificateDao).deleteBondingTagsByTagId(1L);
+    Mockito.verify(tagDao).delete(1L);
+  }
+
+  private static Tag takeTag1() {
+    return Tag.builder().id(1L).name("first tag").build();
   }
 }
