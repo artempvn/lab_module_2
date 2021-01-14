@@ -60,9 +60,9 @@ public class TagDaoImpl implements TagDao {
   }
 
   @Override
-  public Optional<Tag> read(Tag tag) {
+  public Optional<Tag> read(String name) {
     return jdbcTemplate
-        .queryForStream(SQL_READ_BY_NAME, new BeanPropertyRowMapper<>(Tag.class), tag.getName())
+        .queryForStream(SQL_READ_BY_NAME, new BeanPropertyRowMapper<>(Tag.class), name)
         .findAny();
   }
 }

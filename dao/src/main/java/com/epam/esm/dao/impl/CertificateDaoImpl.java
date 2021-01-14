@@ -1,10 +1,13 @@
 package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.CertificateDao;
+import com.epam.esm.dao.SqlHandler;
 import com.epam.esm.entity.Certificate;
+import com.epam.esm.entity.GetParameter;
 import com.epam.esm.entity.Tag;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -14,6 +17,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -36,9 +40,27 @@ public class CertificateDaoImpl implements CertificateDao {
       "DELETE FROM certificates_tags WHERE tag_id=?";
   private static final String SQL_DELETE_BONDING_TAGS_BY_CERTIFICATE_ID =
       "DELETE FROM certificates_tags WHERE certificate_id=?";
+  private static final RowMapper<Certificate> CERTIFICATE_ROW_MAPPER =
+      (rs, rowNum) -> {
+        Certificate certificate = new Certificate();
+        certificate.setId(rs.getLong(1));
+        certificate.setName(rs.getString(2));
+        certificate.setDescription(rs.getString(3));
+        Double price = rs.getObject(4) == null ? null : rs.getDouble(4);
+        certificate.setPrice(price);
+        Integer duration = rs.getObject(5) == null ? null : rs.getInt(5);
+        certificate.setDuration(duration);
+        certificate.setCreateDate(rs.getObject(6, LocalDateTime.class));
+        certificate.setLastUpdateDate(rs.getObject(7, LocalDateTime.class));
+        return certificate;
+      };
+  private static final String SQL_KEY = "sql";
+  private static final String ARGS_KEY = "args";
   private final JdbcTemplate jdbcTemplate;
+  private final SqlHandler sqlHandler;
 
-  public CertificateDaoImpl(JdbcTemplate jdbcTemplate) {
+  public CertificateDaoImpl(JdbcTemplate jdbcTemplate, SqlHandler sqlHandler) {
+    this.sqlHandler = sqlHandler;
     this.jdbcTemplate = jdbcTemplate;
   }
 
@@ -64,44 +86,19 @@ public class CertificateDaoImpl implements CertificateDao {
 
   @Override
   public Optional<Certificate> read(long id) {
-    return jdbcTemplate
-        .queryForStream(
-            SQL_READ,
-            (rs, rowNum) -> {
-              Certificate certificate = new Certificate();
-              certificate.setId(rs.getLong(1));
-              certificate.setName(rs.getString(2));
-              certificate.setDescription(rs.getString(3));
-              certificate.setPrice(rs.getDouble(4));
-              certificate.setDuration(rs.getInt(5));
-              certificate.setCreateDate(rs.getObject(6, LocalDateTime.class));
-              certificate.setLastUpdateDate(rs.getObject(7, LocalDateTime.class));
-              return certificate;
-            },
-            id)
-        .findAny();
+    return jdbcTemplate.queryForStream(SQL_READ, CERTIFICATE_ROW_MAPPER, id).findAny();
   }
 
   @Override
-  public List<Certificate> readAll() {
-    return jdbcTemplate.query(
-        SQL_READ_ALL,
-        (rs, rowNum) -> {
-          Certificate certificate = new Certificate();
-          certificate.setId(rs.getLong(1));
-          certificate.setName(rs.getString(2));
-          certificate.setDescription(rs.getString(3));
-          certificate.setPrice(rs.getDouble(4));
-          certificate.setDuration(rs.getInt(5));
-          certificate.setCreateDate(rs.getObject(6, LocalDateTime.class));
-          certificate.setLastUpdateDate(rs.getObject(7, LocalDateTime.class));
-          return certificate;
-        });
+  public List<Certificate> readAll(GetParameter parameter) {
+    Map<String, Object> sqlData = sqlHandler.generateSqlDataForReadAllRequest(parameter);
+    Object[] args = ((List) sqlData.get(ARGS_KEY)).toArray();
+    return jdbcTemplate.query(sqlData.get(SQL_KEY).toString(), CERTIFICATE_ROW_MAPPER, args);
   }
 
   @Override
-  public void update(Certificate certificate) {
-    jdbcTemplate.update(
+  public int update(Certificate certificate) {
+    return jdbcTemplate.update(
         SQL_UPDATE,
         certificate.getName(),
         certificate.getDescription(),
@@ -113,8 +110,8 @@ public class CertificateDaoImpl implements CertificateDao {
   }
 
   @Override
-  public void delete(long id) {
-    jdbcTemplate.update(SQL_DELETE, id);
+  public int delete(long id) {
+    return jdbcTemplate.update(SQL_DELETE, id);
   }
 
   @Override
@@ -123,18 +120,25 @@ public class CertificateDaoImpl implements CertificateDao {
   }
 
   @Override
-  public List<Tag> readBondingTags(long certificateId) {
+  public List<Tag> readCertificateTags(long certificateId) {
     return jdbcTemplate.query(
         SQL_READ_BONDING_TAGS, new BeanPropertyRowMapper<>(Tag.class), certificateId);
   }
 
   @Override
-  public void deleteBondingTagsByTagId(long tagId) {
+  public void deleteCertificateTagsByTagId(long tagId) {
     jdbcTemplate.update(SQL_DELETE_BONDING_TAGS_BY_TAG_ID, tagId);
   }
 
   @Override
-  public void deleteBondingTagsByCertificateId(long certificateId) {
+  public void deleteCertificateTagsByCertificateId(long certificateId) {
     jdbcTemplate.update(SQL_DELETE_BONDING_TAGS_BY_CERTIFICATE_ID, certificateId);
+  }
+
+  @Override
+  public int updatePatch(Certificate certificate) {
+    Map<String, Object> sqlData = sqlHandler.generateSqlDataForUpdateRequest(certificate);
+    Object[] args = ((List) sqlData.get(ARGS_KEY)).toArray();
+    return jdbcTemplate.update(sqlData.get(SQL_KEY).toString(), args);
   }
 }

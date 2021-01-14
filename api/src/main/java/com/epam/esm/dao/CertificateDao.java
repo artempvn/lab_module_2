@@ -1,6 +1,7 @@
 package com.epam.esm.dao;
 
 import com.epam.esm.entity.Certificate;
+import com.epam.esm.entity.GetParameter;
 import com.epam.esm.entity.Tag;
 
 import java.util.List;
@@ -12,17 +13,19 @@ public interface CertificateDao {
 
   Optional<Certificate> read(long id);
 
-  List<Certificate> readAll();
+  List<Certificate> readAll(GetParameter parameter);
 
-  void update(Certificate certificate);
+  int update(Certificate certificate);
 
-  void delete(long id);
+  int delete(long id);
 
-  void addTag(long certificateId, long tagId);
+  void addTag(long tagId, long certificateId);
 
-  List<Tag> readBondingTags(long certificateId);
+  List<Tag> readCertificateTags(long certificateId);
 
-  void deleteBondingTagsByTagId(long certificateId);
+  void deleteCertificateTagsByTagId(long tagId);
 
-  void deleteBondingTagsByCertificateId(long certificateId);
+  void deleteCertificateTagsByCertificateId(long certificateId);
+
+  int updatePatch(Certificate certificate);
 }

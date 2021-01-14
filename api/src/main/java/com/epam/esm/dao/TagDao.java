@@ -15,5 +15,5 @@ public interface TagDao {
 
   void delete(long id);
 
-  Optional<Tag> read(Tag tag);
+  Optional<Tag> read(String name);
 }

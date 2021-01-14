@@ -1,7 +1,7 @@
 rootProject.name = 'lab2'
 include 'util'
 include 'api'
-include 'entity'
 include 'dao'
 include 'service'
+include 'controller'
 

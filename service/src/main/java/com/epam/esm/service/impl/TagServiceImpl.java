@@ -25,17 +25,8 @@ public class TagServiceImpl implements TagService {
 
   @Override
   public Tag create(Tag inputTag) {
-    List<Tag> tags = tagDao.readAll();
-    boolean wasAddedBefore =
-        tags.stream()
-            .anyMatch(existedTag -> existedTag.getName().equalsIgnoreCase(inputTag.getName()));
-    Tag tag;
-    if (wasAddedBefore) {
-      tag = tagDao.read(inputTag).get();
-    } else {
-      tag = tagDao.create(inputTag);
-    }
-    return tag;
+    Optional<Tag> existingTag = tagDao.read(inputTag.getName());
+    return existingTag.orElseGet(() -> tagDao.create(inputTag));
   }
 
   @Override
@@ -51,7 +42,7 @@ public class TagServiceImpl implements TagService {
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
   public void delete(long id) {
-    certificateDao.deleteBondingTagsByTagId(id);
+    certificateDao.deleteCertificateTagsByTagId(id);
     tagDao.delete(id);
   }
 }
