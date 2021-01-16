@@ -12,7 +12,6 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
 public class Certificate {
 
   private Long id;
@@ -23,14 +22,10 @@ public class Certificate {
 
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-//@JsonSerialize(using = ToStringSerializer.class)
-//@JsonDeserialize(using = FromStringDeserializer.class)
   private LocalDateTime createDate;
 
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-//@JsonSerialize(using = ToStringSerializer.class)
-//@JsonDeserialize(using = FromStringDeserializer.class)
   private LocalDateTime lastUpdateDate;
 
   private List<Tag> tags;

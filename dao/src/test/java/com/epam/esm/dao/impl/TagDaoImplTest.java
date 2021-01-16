@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+@ActiveProfiles("dev")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class)
@@ -33,8 +35,10 @@ class TagDaoImplTest {
 
   @BeforeEach
   void setUp() {
-    tagDao.create(givenExistingTag1());
-    tagDao.create(givenExistingTag2());
+    Tag tag1 = givenExistingTag1();
+    Tag tag2 = givenExistingTag2();
+    tagDao.create(tag1);
+    tagDao.create(tag2);
   }
 
   @Test
@@ -62,7 +66,9 @@ class TagDaoImplTest {
 
   @Test
   void readAll() {
-    List<Tag> expectedList = List.of(givenExistingTag1(), givenExistingTag2());
+    Tag tag1 = givenExistingTag1();
+    Tag tag2 = givenExistingTag2();
+    List<Tag> expectedList = List.of(tag1, tag2);
 
     List<Tag> actualList = tagDao.readAll();
     assertEquals(expectedList, actualList);

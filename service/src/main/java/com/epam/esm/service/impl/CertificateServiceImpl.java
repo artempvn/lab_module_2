@@ -5,8 +5,9 @@ import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.GetParameter;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.CertificateBadRequestException;
+import com.epam.esm.exception.CertificateNotFoundException;
 import com.epam.esm.service.CertificateService;
-import com.epam.esm.service.ReflectionUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,28 +22,29 @@ public class CertificateServiceImpl implements CertificateService {
   public static final int ONE_UPDATED_ROW = 1;
   private final CertificateDao certificateDao;
   private final TagDao tagDao;
-  private final ReflectionUtil util; // TODO remove with old updatePatch
 
-  public CertificateServiceImpl(CertificateDao certificateDao, TagDao tagDao, ReflectionUtil util) {
+  public CertificateServiceImpl(CertificateDao certificateDao, TagDao tagDao) {
     this.certificateDao = certificateDao;
     this.tagDao = tagDao;
-    this.util = util;
   }
 
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
   public Certificate create(Certificate certificate) {
     Certificate createdCertificate = certificateDao.create(certificate);
+    createdCertificate.setTags(certificate.getTags());
     addTagsToDb(createdCertificate);
     return createdCertificate;
   }
 
   @Override
-  public Optional<Certificate> read(long id) {
+  public Certificate read(long id) {
     Optional<Certificate> certificate = certificateDao.read(id);
     certificate.ifPresent(
         actualCertificate -> actualCertificate.setTags(certificateDao.readCertificateTags(id)));
-    return certificate;
+    return certificate.orElseThrow(
+        () ->
+            new CertificateNotFoundException("There is no certificate in db with id = " + id, id));
   }
 
   @Override
@@ -54,59 +56,38 @@ public class CertificateServiceImpl implements CertificateService {
     return certificates;
   }
 
-  @Override // TODO what is going on: insert to db only not-null fields->put updated certificate back
+  @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
-  public Optional<Certificate> updatePatch(Certificate certificate) {
+  public Certificate updatePatch(Certificate certificate) {
     int numberOfUpdatedRows = certificateDao.updatePatch(certificate);
-    if (numberOfUpdatedRows == ONE_UPDATED_ROW) {
-      if (certificate.getTags() != null) {
-        certificateDao.deleteCertificateTagsByCertificateId(certificate.getId());
-        addTagsToDb(certificate);
-      } else {
-        List<Tag> tags = certificateDao.readCertificateTags(certificate.getId());
-        certificate.setTags(tags);
-      }
-      return read(certificate.getId());
+    if (numberOfUpdatedRows != ONE_UPDATED_ROW) {
+      throw new CertificateBadRequestException(
+          "There is no certificate in db with id = " + certificate.getId(), certificate.getId());
     }
-    return Optional.empty();
+    return certificate;
   }
-
-  //  @Override TODO what is going on: read from db->fill nullable->put back to db
-  //  @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
-  //  public Optional<Certificate> updatePatch(Certificate certificate) {
-  //    Optional<Certificate> existedCertificate = certificateDao.read(certificate.getId());
-  //    if (existedCertificate.isPresent()) {
-  //      util.fillNullFields(certificate, existedCertificate.get());
-  //      certificateDao.update(certificate);
-  //      if (certificate.getTags() != null) {
-  //        certificateDao.deleteCertificateTagsByCertificateId(certificate.getId());
-  //        addTagsToDb(certificate);
-  //      } else {
-  //        List<Tag> tags = certificateDao.readCertificateTags(certificate.getId());
-  //        certificate.setTags(tags);
-  //      }
-  //      return Optional.of(certificate);
-  //    }
-  //    return Optional.empty();
-  //  }
 
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
-  public Optional<Certificate> updatePut(Certificate certificate) {
+  public Certificate updatePut(Certificate certificate) {
     int numberOfUpdatedRows = certificateDao.update(certificate);
-    if (numberOfUpdatedRows == ONE_UPDATED_ROW) {
-      certificateDao.deleteCertificateTagsByCertificateId(certificate.getId());
-      addTagsToDb(certificate);
-      return Optional.of(certificate);
+    if (numberOfUpdatedRows != ONE_UPDATED_ROW) {
+      throw new CertificateBadRequestException(
+          "There is no certificate in db with id = " + certificate.getId(), certificate.getId());
     }
-    return Optional.empty();
+    certificateDao.deleteCertificateTagsByCertificateId(certificate.getId());
+    addTagsToDb(certificate);
+    return certificate;
   }
 
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
   public void delete(long id) {
     certificateDao.deleteCertificateTagsByCertificateId(id);
-    certificateDao.delete(id);
+    int numberOfUpdatedRows = certificateDao.delete(id);
+    if (numberOfUpdatedRows != ONE_UPDATED_ROW) {
+      throw new CertificateBadRequestException("There is no certificate in db with id = " + id, id);
+    }
   }
 
   void addTagsToDb(Certificate certificate) {

@@ -8,70 +8,93 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
+/** The type Certificate controller. */
 @RestController
 @RequestMapping("/certificates")
 public class CertificateController {
 
   private final CertificateService certificateService;
 
+  /**
+   * Instantiates a new Certificate controller.
+   *
+   * @param certificateService the certificate service
+   */
   public CertificateController(CertificateService certificateService) {
     this.certificateService = certificateService;
   }
 
+  /**
+   * Read certificate response entity.
+   *
+   * @param id the id
+   * @return the response entity
+   */
   @GetMapping("/{id}")
   public ResponseEntity<Certificate> readCertificate(@PathVariable long id) {
-    Optional<Certificate> certificate = certificateService.read(id);
-    return certificate.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    Certificate certificate = certificateService.read(id);
+    return ResponseEntity.status(HttpStatus.OK).body(certificate);
   }
 
+  /**
+   * Read certificates list.
+   *
+   * @param parameter the parameter
+   * @return the list
+   */
   @GetMapping
-  public List<Certificate> readCertificates(
-      @RequestParam(required = false) String tag,
-      @RequestParam(required = false) String name,
-      @RequestParam(required = false) String description,
-      @RequestParam(name = "sort.date", required = false) Boolean sortByDate,
-      @RequestParam(name = "sort.name", required = false) Boolean sortByName,
-      @RequestParam(name = "sort.asc", required = false) Boolean sortAsc) {
-    GetParameter parameter =
-        GetParameter.builder()
-            .tagName(tag)
-            .name(name)
-            .description(description)
-            .sortByDate(sortByDate)
-            .sortByName(sortByName)
-            .sortAsc(sortAsc)
-            .build();
+  public List<Certificate> readCertificates(GetParameter parameter) {
     return certificateService.readAll(parameter);
   }
 
+  /**
+   * Create certificate response entity.
+   *
+   * @param certificate the certificate
+   * @return the response entity
+   */
   @PostMapping
   public ResponseEntity<Certificate> createCertificate(@RequestBody Certificate certificate) {
     Certificate createdCertificate = certificateService.create(certificate);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdCertificate);
   }
 
+  /**
+   * Update certificate put response entity.
+   *
+   * @param id the id
+   * @param certificate the certificate
+   * @return the response entity
+   */
   @PutMapping("/{id}")
   public ResponseEntity<Certificate> updateCertificatePut(
       @PathVariable long id, @RequestBody Certificate certificate) {
     certificate.setId(id);
-    Optional<Certificate> updatedCertificate = certificateService.updatePut(certificate);
-    return updatedCertificate
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    Certificate updatedCertificate = certificateService.updatePut(certificate);
+    return ResponseEntity.status(HttpStatus.OK).body(updatedCertificate);
   }
 
+  /**
+   * Update certificate patch response entity.
+   *
+   * @param id the id
+   * @param certificate the certificate
+   * @return the response entity
+   */
   @PatchMapping("/{id}")
   public ResponseEntity<Certificate> updateCertificatePatch(
       @PathVariable long id, @RequestBody Certificate certificate) {
     certificate.setId(id);
-    Optional<Certificate> updatedCertificate = certificateService.updatePatch(certificate);
-    return updatedCertificate
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    Certificate updatedCertificate = certificateService.updatePatch(certificate);
+    return ResponseEntity.status(HttpStatus.OK).body(updatedCertificate);
   }
 
+  /**
+   * Delete certificate.
+   *
+   * @param id the id
+   */
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteCertificate(@PathVariable long id) {

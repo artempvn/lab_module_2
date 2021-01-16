@@ -4,19 +4,54 @@ import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.GetParameter;
 
 import java.util.List;
-import java.util.Optional;
 
+/** The interface Certificate service. */
 public interface CertificateService {
 
+  /**
+   * Create certificate.
+   *
+   * @param certificate the certificate
+   * @return the certificate
+   */
   Certificate create(Certificate certificate);
 
-  Optional<Certificate> read(long id);
+  /**
+   * Read certificate.
+   *
+   * @param id the id
+   * @return the certificate
+   */
+  Certificate read(long id);
 
+  /**
+   * Read all list.
+   *
+   * @param parameter the parameter
+   * @return the list
+   */
   List<Certificate> readAll(GetParameter parameter);
 
-  Optional<Certificate> updatePut(Certificate certificate);
+  /**
+   * Update put certificate.
+   *
+   * @param certificate the certificate
+   * @return the certificate
+   */
+  Certificate updatePut(Certificate certificate);
 
-  Optional<Certificate> updatePatch(Certificate certificate);
+  /**
+   * Update patch certificate.
+   *
+   * @param certificate the certificate
+   * @return the certificate
+   */
+  Certificate updatePatch(Certificate certificate);
 
+  /**
+   * Delete.
+   *
+   * @param id the id
+   */
   void delete(long id);
 }

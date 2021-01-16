@@ -1,5 +1,4 @@
 rootProject.name = 'lab2'
-include 'util'
 include 'api'
 include 'dao'
 include 'service'

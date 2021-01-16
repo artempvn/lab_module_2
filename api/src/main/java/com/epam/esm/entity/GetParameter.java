@@ -5,24 +5,7 @@ public class GetParameter {
   private String tagName;
   private String name;
   private String description;
-  private Boolean sortByDate;
-  private Boolean sortByName;
-  private Boolean sortAsc;
-
-  public GetParameter() {}
-
-  private GetParameter(Builder builder) {
-    tagName = builder.tagName;
-    name = builder.name;
-    description = builder.description;
-    sortByDate = builder.sortByDate;
-    sortByName = builder.sortByName;
-    sortAsc = builder.sortAsc;
-  }
-
-  public static Builder builder() {
-    return new Builder();
-  }
+  private SortParam sort;
 
   public String getTagName() {
     return tagName;
@@ -48,28 +31,12 @@ public class GetParameter {
     this.description = description;
   }
 
-  public Boolean getSortByDate() {
-    return sortByDate;
+  public SortParam getSort() {
+    return sort;
   }
 
-  public void setSortByDate(Boolean sortByDate) {
-    this.sortByDate = sortByDate;
-  }
-
-  public Boolean getSortByName() {
-    return sortByName;
-  }
-
-  public void setSortByName(Boolean sortByName) {
-    this.sortByName = sortByName;
-  }
-
-  public Boolean getSortAsc() {
-    return sortAsc;
-  }
-
-  public void setSortAsc(Boolean sortAsc) {
-    this.sortAsc = sortAsc;
+  public void setSort(SortParam sort) {
+    this.sort = sort;
   }
 
   @Override
@@ -78,55 +45,8 @@ public class GetParameter {
     sb.append("tagName='").append(tagName).append('\'');
     sb.append(", name='").append(name).append('\'');
     sb.append(", description='").append(description).append('\'');
-    sb.append(", sortByDate=").append(sortByDate);
-    sb.append(", sortByName=").append(sortByName);
-    sb.append(", sortAsc=").append(sortAsc);
+    sb.append(", sort=").append(sort);
     sb.append('}');
     return sb.toString();
-  }
-
-  public static class Builder {
-    private String tagName;
-    private String name;
-    private String description;
-    private Boolean sortByDate;
-    private Boolean sortByName;
-    private Boolean sortAsc;
-
-    private Builder() {}
-
-    public Builder tagName(String tagName) {
-      this.tagName = tagName;
-      return this;
-    }
-
-    public Builder name(String name) {
-      this.name = name;
-      return this;
-    }
-
-    public Builder description(String description) {
-      this.description = description;
-      return this;
-    }
-
-    public Builder sortByDate(Boolean sortByDate) {
-      this.sortByDate = sortByDate;
-      return this;
-    }
-
-    public Builder sortByName(Boolean sortByName) {
-      this.sortByName = sortByName;
-      return this;
-    }
-
-    public Builder sortAsc(Boolean sortAsc) {
-      this.sortAsc = sortAsc;
-      return this;
-    }
-
-    public GetParameter build() {
-      return new GetParameter(this);
-    }
   }
 }

@@ -7,7 +7,6 @@ import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.GetParameter;
 import com.epam.esm.entity.Tag;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,6 +14,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+@ActiveProfiles("dev")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfig.class)
@@ -77,10 +78,10 @@ class CertificateDaoImplTest {
   }
 
   @Test
-  @Disabled("refactoring in progress")
   void readAll() {
-    List<Certificate> expectedList =
-        List.of(givenExistingCertificate1(), givenExistingCertificate2());
+    Certificate certificate1 = givenExistingCertificate1();
+    Certificate certificate2 = givenExistingCertificate2();
+    List<Certificate> expectedList = List.of(certificate1, certificate2);
 
     List<Certificate> actualList = certificateDao.readAll(new GetParameter());
     assertEquals(expectedList, actualList);
@@ -88,7 +89,7 @@ class CertificateDaoImplTest {
 
   @Test
   void update() {
-    Certificate expectedCertificate = givenNewCertificateForUpdateId1();
+    Certificate expectedCertificate = Certificate.builder().id(1L).name("new name").build();
 
     certificateDao.update(expectedCertificate);
 
@@ -130,6 +131,19 @@ class CertificateDaoImplTest {
   }
 
   @Test
+  void removeTag() {
+    Certificate certificate = givenExistingCertificate2();
+    Tag tag1 = givenExistingTag1();
+    Tag tag2 = givenExistingTag2();
+    List<Tag> expectedTags = List.of(tag1);
+
+    certificateDao.removeTag(tag2.getId(), certificate.getId());
+
+    List<Tag> actualTags = certificateDao.readCertificateTags(certificate.getId());
+    assertEquals(expectedTags, actualTags);
+  }
+
+  @Test
   void deleteCertificateTagsByTagId() {
     Certificate certificate = givenExistingCertificate2();
     Tag tag = givenExistingTag1();
@@ -156,7 +170,7 @@ class CertificateDaoImplTest {
   void updatePatch() {
     Certificate expectedCertificate = givenExistingCertificate1();
     expectedCertificate.setName("new name");
-    Certificate updateCertificate = givenNewCertificateForUpdateId1();
+    Certificate updateCertificate = Certificate.builder().id(1L).name("new name").build();
 
     certificateDao.updatePatch(updateCertificate);
 
@@ -197,10 +211,6 @@ class CertificateDaoImplTest {
         .createDate(LocalDateTime.of(2021, 1, 5, 14, 0, 0))
         .lastUpdateDate(LocalDateTime.of(2021, 1, 5, 14, 0, 0))
         .build();
-  }
-
-  private static Certificate givenNewCertificateForUpdateId1() {
-    return Certificate.builder().id(1L).name("new name").build();
   }
 
   private static Tag givenExistingTag1() {

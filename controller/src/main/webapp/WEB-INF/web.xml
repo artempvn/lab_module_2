@@ -12,4 +12,8 @@
         <servlet-name>dispatcher</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+    <context-param>
+        <param-name>spring.profiles.active</param-name>
+        <param-value>prod</param-value>
+    </context-param>
 </web-app>

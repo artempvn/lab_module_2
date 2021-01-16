@@ -4,6 +4,7 @@ import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.SqlHandler;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.GetParameter;
+import com.epam.esm.entity.SqlData;
 import com.epam.esm.entity.Tag;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,6 +35,8 @@ public class CertificateDaoImpl implements CertificateDao {
   private static final String SQL_DELETE = "DELETE FROM gift_certificates WHERE id=?";
   private static final String SQL_ADD_TAG =
       "INSERT INTO certificates_tags(tag_id,certificate_id) VALUES (?,?)";
+  private static final String SQL_REMOVE_TAG =
+      "DELETE FROM certificates_tags WHERE tag_id=? AND certificate_id=? ";
   private static final String SQL_READ_BONDING_TAGS =
       "SELECT id,name FROM tag JOIN certificates_tags ON tag_id=id WHERE certificate_id=?";
   private static final String SQL_DELETE_BONDING_TAGS_BY_TAG_ID =
@@ -91,9 +94,9 @@ public class CertificateDaoImpl implements CertificateDao {
 
   @Override
   public List<Certificate> readAll(GetParameter parameter) {
-    Map<String, Object> sqlData = sqlHandler.generateSqlDataForReadAllRequest(parameter);
-    Object[] args = ((List) sqlData.get(ARGS_KEY)).toArray();
-    return jdbcTemplate.query(sqlData.get(SQL_KEY).toString(), CERTIFICATE_ROW_MAPPER, args);
+    SqlData sqlData = sqlHandler.generateSqlDataForReadAllRequest(parameter);
+    return jdbcTemplate.query(
+        sqlData.getRequest(), CERTIFICATE_ROW_MAPPER, sqlData.getArgs().toArray());
   }
 
   @Override
@@ -120,6 +123,11 @@ public class CertificateDaoImpl implements CertificateDao {
   }
 
   @Override
+  public int removeTag(long tagId, long certificateId) {
+    return jdbcTemplate.update(SQL_REMOVE_TAG, tagId, certificateId);
+  }
+
+  @Override
   public List<Tag> readCertificateTags(long certificateId) {
     return jdbcTemplate.query(
         SQL_READ_BONDING_TAGS, new BeanPropertyRowMapper<>(Tag.class), certificateId);
@@ -137,8 +145,7 @@ public class CertificateDaoImpl implements CertificateDao {
 
   @Override
   public int updatePatch(Certificate certificate) {
-    Map<String, Object> sqlData = sqlHandler.generateSqlDataForUpdateRequest(certificate);
-    Object[] args = ((List) sqlData.get(ARGS_KEY)).toArray();
-    return jdbcTemplate.update(sqlData.get(SQL_KEY).toString(), args);
+    SqlData sqlData = sqlHandler.generateSqlDataForUpdateRequest(certificate);
+    return jdbcTemplate.update(sqlData.getRequest(), sqlData.getArgs().toArray());
   }
 }
