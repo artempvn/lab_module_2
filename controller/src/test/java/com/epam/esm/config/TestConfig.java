@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.validation.Validator;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import javax.sql.DataSource;
 
@@ -26,5 +28,10 @@ public class TestConfig {
         .setType(EmbeddedDatabaseType.H2)
         .addScript("certificates.sql")
         .build();
+  }
+
+  @Bean
+  public Validator localValidatorFactoryBean() {
+    return new LocalValidatorFactoryBean();
   }
 }

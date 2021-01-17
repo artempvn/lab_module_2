@@ -21,6 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.Validator;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +40,7 @@ class TagControllerTest {
   @Autowired TagDao tagDao;
   @Autowired CertificateDao certificateDao;
   @Autowired TagController tagController;
+  @Autowired Validator validator;
 
   @BeforeEach
   public void setup() {
@@ -46,6 +48,7 @@ class TagControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(tagController)
             .setControllerAdvice(new ResourceAdvice())
+            .setValidator(validator)
             .build();
   }
 

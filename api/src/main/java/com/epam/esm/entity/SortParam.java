@@ -3,33 +3,33 @@ package com.epam.esm.entity;
 public class SortParam {
   public enum SortingType {
     ASC,
-    DESC
+    DESC;
   }
 
-  private SortingType date;
-  private SortingType name;
+  private SortingType byDate;
+  private SortingType byName;
 
-  public SortingType getDate() {
-    return date;
+  public SortingType getByDate() {
+    return byDate;
   }
 
-  public void setDate(SortingType date) {
-    this.date = date;
+  public void setByDate(SortingType byDate) {
+    this.byDate = byDate;
   }
 
-  public SortingType getName() {
-    return name;
+  public SortingType getByName() {
+    return byName;
   }
 
-  public void setName(SortingType name) {
-    this.name = name;
+  public void setByName(SortingType byName) {
+    this.byName = byName;
   }
 
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("SortParam{");
-    sb.append("date=").append(date);
-    sb.append(", name=").append(name);
+    sb.append("date=").append(byDate);
+    sb.append(", name=").append(byName);
     sb.append('}');
     return sb.toString();
   }

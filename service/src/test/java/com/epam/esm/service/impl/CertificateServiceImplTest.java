@@ -3,9 +3,10 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Certificate;
+import com.epam.esm.entity.CertificatePatch;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.CertificateBadRequestException;
-import com.epam.esm.exception.CertificateNotFoundException;
+import com.epam.esm.exception.ResourceNotFoundException;
+import com.epam.esm.exception.ResourceValidationException;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -176,7 +177,7 @@ class CertificateServiceImplTest {
   void readNotExistedException() {
     when(certificateDao.read(anyLong())).thenReturn(Optional.empty());
 
-    assertThrows(CertificateNotFoundException.class, () -> certificateService.read(ID));
+    assertThrows(ResourceNotFoundException.class, () -> certificateService.read(ID));
   }
 
   @Test
@@ -201,7 +202,7 @@ class CertificateServiceImplTest {
 
   @Test
   void updateCertificateDaoUpdatePatchInvocation() {
-    Certificate certificate = givenCertificate1();
+    CertificatePatch certificate = new CertificatePatch();
     when(certificateDao.updatePatch(any())).thenReturn(ONE_UPDATED_ROW);
 
     certificateService.updatePatch(certificate);
@@ -211,11 +212,11 @@ class CertificateServiceImplTest {
 
   @Test
   void updateCertificateDaoUpdatePatchException() {
-    Certificate certificate = givenCertificate1();
+    CertificatePatch certificate = new CertificatePatch();
     when(certificateDao.updatePatch(any())).thenReturn(NO_UPDATED_ROWS);
 
     assertThrows(
-        CertificateBadRequestException.class, () -> certificateService.updatePatch(certificate));
+        ResourceValidationException.class, () -> certificateService.updatePatch(certificate));
   }
 
   @Test
@@ -234,7 +235,7 @@ class CertificateServiceImplTest {
     when(certificateDao.update(any())).thenReturn(NO_UPDATED_ROWS);
 
     assertThrows(
-        CertificateBadRequestException.class, () -> certificateService.updatePut(certificate));
+        ResourceValidationException.class, () -> certificateService.updatePut(certificate));
   }
 
   @Test
@@ -269,7 +270,7 @@ class CertificateServiceImplTest {
   void deleteCertificateDaoDeleteException() {
     when(certificateDao.delete(anyLong())).thenReturn(NO_UPDATED_ROWS);
 
-    assertThrows(CertificateBadRequestException.class, () -> certificateService.delete(ID));
+    assertThrows(ResourceValidationException.class, () -> certificateService.delete(ID));
   }
 
   @Test

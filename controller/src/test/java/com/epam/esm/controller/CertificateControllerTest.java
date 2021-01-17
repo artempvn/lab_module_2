@@ -20,14 +20,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.Validator;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ActiveProfiles("dev")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -39,12 +39,14 @@ class CertificateControllerTest {
   @Autowired TagDao tagDao;
   @Autowired CertificateDao certificateDao;
   @Autowired CertificateController certificateController;
+  @Autowired Validator validator;
 
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
     mockMvc =
         MockMvcBuilders.standaloneSetup(certificateController)
+            .setValidator(validator)
             .setControllerAdvice(new ResourceAdvice())
             .build();
   }
@@ -136,7 +138,7 @@ class CertificateControllerTest {
     mockMvc
         .perform(
             get(
-                "/certificates?tagName=first tag&name=cert&description=descr&sort.name=ASC&sort.date=DESC"))
+                "/certificates?tagName=first tag&certificateName=cert&certificateDescription=descr&sort.byName=ASC&sort.byDate=DESC"))
         .andExpect(
             content()
                 .json(new ObjectMapper().writeValueAsString(List.of(certificate1, certificate2))));
@@ -166,14 +168,18 @@ class CertificateControllerTest {
             post("/certificates")
                 .content(new ObjectMapper().writeValueAsString(certificate1))
                 .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(content().json(new ObjectMapper().writeValueAsString(certificateWithId)));
+        .andExpect(jsonPath("$.id").value(certificateWithId.getId()))
+        .andExpect(jsonPath("$.name").value(certificateWithId.getName()))
+        .andExpect(jsonPath("$.description").value(certificateWithId.getDescription()))
+        .andExpect(jsonPath("$.price").value(certificateWithId.getPrice()))
+        .andExpect(jsonPath("$.duration").value(certificateWithId.getDuration()));
   }
 
   @Test
   void updateCertificatePutPositiveStatusCheck() throws Exception {
     Certificate certificate = givenExistingCertificate1();
     certificateDao.create(certificate);
-    Certificate certificateUpdate = givenNewCertificateForUpdateId1();
+    Certificate certificateUpdate = givenNewCertificateForUpdatePutId1();
 
     mockMvc
         .perform(
@@ -199,7 +205,7 @@ class CertificateControllerTest {
   void updateCertificatePutPositiveValueCheck() throws Exception {
     Certificate certificate = givenExistingCertificate1();
     certificateDao.create(certificate);
-    Certificate certificateUpdate = givenNewCertificateForUpdateId1();
+    Certificate certificateUpdate = givenNewCertificateForUpdatePutId1();
 
     mockMvc
         .perform(
@@ -300,6 +306,16 @@ class CertificateControllerTest {
         .duration(10)
         .createDate(LocalDateTime.of(2020, 12, 25, 15, 0, 0))
         .lastUpdateDate(LocalDateTime.of(2021, 1, 5, 14, 0, 0))
+        .build();
+  }
+
+  private static Certificate givenNewCertificateForUpdatePutId1() {
+    return Certificate.builder()
+        .id(1L)
+        .name("new name")
+        .description("first description")
+        .price(1.33)
+        .duration(5)
         .build();
   }
 

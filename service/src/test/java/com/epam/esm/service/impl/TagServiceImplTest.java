@@ -5,14 +5,15 @@ import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Certificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.entity.TagAction;
-import com.epam.esm.exception.CertificateBadRequestException;
-import com.epam.esm.exception.ResourceBadRequestException;
-import com.epam.esm.exception.TagBadRequestException;
-import com.epam.esm.exception.TagNotFoundException;
+import com.epam.esm.exception.ResourceNotFoundException;
+import com.epam.esm.exception.ResourceValidationException;
+import com.epam.esm.exception.ResourcesValidationException;
+import com.epam.esm.service.TagActionService;
 import com.epam.esm.service.TagService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,7 +27,10 @@ class TagServiceImplTest {
   public static final int NO_DELETED_ROW = 0;
   TagDao tagDao = mock(TagDao.class);
   CertificateDao certificateDao = mock(CertificateDao.class);
-  TagService tagService = new TagServiceImpl(tagDao, certificateDao);
+  TagActionService addTagService = new AddTagActionServiceImpl(tagDao, certificateDao);
+  TagActionService removeTagService = new RemoveTagActionServiceImpl(tagDao, certificateDao);
+  TagService tagService =
+      new TagServiceImpl(tagDao, certificateDao, List.of(addTagService, removeTagService));
 
   @Test
   void createTagDaoReadInvocation() {
@@ -81,7 +85,7 @@ class TagServiceImplTest {
 
   @Test
   void readException() {
-    assertThrows(TagNotFoundException.class, () -> tagService.read(TAG_ID));
+    assertThrows(ResourceNotFoundException.class, () -> tagService.read(TAG_ID));
   }
 
   @Test
@@ -113,7 +117,7 @@ class TagServiceImplTest {
   void deleteTagDaoDeleteException() {
     when(tagDao.delete(anyLong())).thenReturn(NO_DELETED_ROW);
 
-    assertThrows(TagBadRequestException.class, () -> tagService.delete(TAG_ID));
+    assertThrows(ResourceValidationException.class, () -> tagService.delete(TAG_ID));
   }
 
   @Test
@@ -163,7 +167,7 @@ class TagServiceImplTest {
     when(tagDao.read(anyLong())).thenReturn(Optional.empty());
     when(certificateDao.read(anyLong())).thenReturn(Optional.of(certificate));
 
-    assertThrows(TagBadRequestException.class, () -> tagService.processTagAction(tagAction));
+    assertThrows(ResourceValidationException.class, () -> tagService.processTagAction(tagAction));
   }
 
   @Test
@@ -174,8 +178,7 @@ class TagServiceImplTest {
     when(tagDao.read(anyLong())).thenReturn(Optional.of(tag));
     when(certificateDao.read(anyLong())).thenReturn(Optional.empty());
 
-    assertThrows(
-        CertificateBadRequestException.class, () -> tagService.processTagAction(tagAction));
+    assertThrows(ResourceValidationException.class, () -> tagService.processTagAction(tagAction));
   }
 
   @Test
@@ -199,6 +202,6 @@ class TagServiceImplTest {
         new TagAction(TagAction.ActionType.REMOVE, certificate.getId(), tag.getId());
     when(certificateDao.removeTag(anyLong(), anyLong())).thenReturn(NO_DELETED_ROW);
 
-    assertThrows(ResourceBadRequestException.class, () -> tagService.processTagAction(tagAction));
+    assertThrows(ResourcesValidationException.class, () -> tagService.processTagAction(tagAction));
   }
 }

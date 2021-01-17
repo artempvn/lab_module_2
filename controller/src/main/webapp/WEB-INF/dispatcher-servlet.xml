@@ -11,10 +11,6 @@
 
 
     <context:component-scan base-package="com.epam.esm"/>
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/jsp/"/>
-        <property name="suffix" value=".jsp"></property>
-    </bean>
 
     <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
         <property name="location" value="classpath:certificates.properties"/>
@@ -33,10 +29,12 @@
         <property name="username" value="${uname}"/>
         <property name="password" value="${password}"/>
         <property name="initialSize" value="${initialSize}"/>
+        <property name="removeAbandonedTimeout" value="2"/>
         <property name="maxTotal" value="${maxTotal}"/>
     </bean>
 
     <mvc:annotation-driven>
+
         <mvc:message-converters>
             <bean id="jacksonHttpMessageConverter"
                   class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">

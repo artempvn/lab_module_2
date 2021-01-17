@@ -1,12 +1,14 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.entity.Certificate;
-import com.epam.esm.entity.GetParameter;
+import com.epam.esm.entity.CertificatePatch;
+import com.epam.esm.entity.CertificatesRequest;
 import com.epam.esm.service.CertificateService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /** The type Certificate controller. */
@@ -44,7 +46,7 @@ public class CertificateController {
    * @return the list
    */
   @GetMapping
-  public List<Certificate> readCertificates(GetParameter parameter) {
+  public List<Certificate> readCertificates(CertificatesRequest parameter) {
     return certificateService.readAll(parameter);
   }
 
@@ -55,7 +57,9 @@ public class CertificateController {
    * @return the response entity
    */
   @PostMapping
-  public ResponseEntity<Certificate> createCertificate(@RequestBody Certificate certificate) {
+  public ResponseEntity<Certificate> createCertificate(
+      @Valid @RequestBody Certificate certificate) {
+
     Certificate createdCertificate = certificateService.create(certificate);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdCertificate);
   }
@@ -69,7 +73,7 @@ public class CertificateController {
    */
   @PutMapping("/{id}")
   public ResponseEntity<Certificate> updateCertificatePut(
-      @PathVariable long id, @RequestBody Certificate certificate) {
+      @PathVariable long id, @Valid @RequestBody Certificate certificate) {
     certificate.setId(id);
     Certificate updatedCertificate = certificateService.updatePut(certificate);
     return ResponseEntity.status(HttpStatus.OK).body(updatedCertificate);
@@ -83,10 +87,10 @@ public class CertificateController {
    * @return the response entity
    */
   @PatchMapping("/{id}")
-  public ResponseEntity<Certificate> updateCertificatePatch(
-      @PathVariable long id, @RequestBody Certificate certificate) {
+  public ResponseEntity<CertificatePatch> updateCertificatePatch(
+      @PathVariable long id, @Valid @RequestBody CertificatePatch certificate) {
     certificate.setId(id);
-    Certificate updatedCertificate = certificateService.updatePatch(certificate);
+    CertificatePatch updatedCertificate = certificateService.updatePatch(certificate);
     return ResponseEntity.status(HttpStatus.OK).body(updatedCertificate);
   }
 

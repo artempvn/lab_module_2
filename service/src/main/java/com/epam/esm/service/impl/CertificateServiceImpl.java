@@ -3,20 +3,22 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Certificate;
-import com.epam.esm.entity.GetParameter;
+import com.epam.esm.entity.CertificatePatch;
+import com.epam.esm.entity.CertificatesRequest;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.exception.CertificateBadRequestException;
-import com.epam.esm.exception.CertificateNotFoundException;
+import com.epam.esm.exception.ResourceNotFoundException;
+import com.epam.esm.exception.ResourceValidationException;
 import com.epam.esm.service.CertificateService;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Service
 public class CertificateServiceImpl implements CertificateService {
 
   public static final int ONE_UPDATED_ROW = 1;
@@ -31,6 +33,9 @@ public class CertificateServiceImpl implements CertificateService {
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
   public Certificate create(Certificate certificate) {
+    LocalDateTime timeNow = LocalDateTime.now();
+    certificate.setCreateDate(timeNow);
+    certificate.setLastUpdateDate(timeNow);
     Certificate createdCertificate = certificateDao.create(certificate);
     createdCertificate.setTags(certificate.getTags());
     addTagsToDb(createdCertificate);
@@ -42,13 +47,11 @@ public class CertificateServiceImpl implements CertificateService {
     Optional<Certificate> certificate = certificateDao.read(id);
     certificate.ifPresent(
         actualCertificate -> actualCertificate.setTags(certificateDao.readCertificateTags(id)));
-    return certificate.orElseThrow(
-        () ->
-            new CertificateNotFoundException("There is no certificate in db with id = " + id, id));
+    return certificate.orElseThrow(ResourceNotFoundException.notFoundWithCertificateId(id));
   }
 
   @Override
-  public List<Certificate> readAll(GetParameter parameter) {
+  public List<Certificate> readAll(CertificatesRequest parameter) {
     List<Certificate> certificates = certificateDao.readAll(parameter);
     for (Certificate certificate : certificates) {
       certificate.setTags(certificateDao.readCertificateTags(certificate.getId()));
@@ -58,11 +61,12 @@ public class CertificateServiceImpl implements CertificateService {
 
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
-  public Certificate updatePatch(Certificate certificate) {
+  public CertificatePatch updatePatch(CertificatePatch certificate) {
+    LocalDateTime timeNow = LocalDateTime.now();
+    certificate.setLastUpdateDate(timeNow);
     int numberOfUpdatedRows = certificateDao.updatePatch(certificate);
     if (numberOfUpdatedRows != ONE_UPDATED_ROW) {
-      throw new CertificateBadRequestException(
-          "There is no certificate in db with id = " + certificate.getId(), certificate.getId());
+      throw ResourceValidationException.validationWithCertificateId(certificate.getId()).get();
     }
     return certificate;
   }
@@ -70,10 +74,12 @@ public class CertificateServiceImpl implements CertificateService {
   @Override
   @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
   public Certificate updatePut(Certificate certificate) {
+    LocalDateTime timeNow = LocalDateTime.now();
+    certificate.setCreateDate(timeNow);
+    certificate.setLastUpdateDate(timeNow);
     int numberOfUpdatedRows = certificateDao.update(certificate);
     if (numberOfUpdatedRows != ONE_UPDATED_ROW) {
-      throw new CertificateBadRequestException(
-          "There is no certificate in db with id = " + certificate.getId(), certificate.getId());
+      throw ResourceValidationException.validationWithCertificateId(certificate.getId()).get();
     }
     certificateDao.deleteCertificateTagsByCertificateId(certificate.getId());
     addTagsToDb(certificate);
@@ -86,7 +92,7 @@ public class CertificateServiceImpl implements CertificateService {
     certificateDao.deleteCertificateTagsByCertificateId(id);
     int numberOfUpdatedRows = certificateDao.delete(id);
     if (numberOfUpdatedRows != ONE_UPDATED_ROW) {
-      throw new CertificateBadRequestException("There is no certificate in db with id = " + id, id);
+      throw ResourceValidationException.validationWithCertificateId(id).get();
     }
   }
 

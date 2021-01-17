@@ -1,7 +1,8 @@
 package com.epam.esm.dao;
 
 import com.epam.esm.entity.Certificate;
-import com.epam.esm.entity.GetParameter;
+import com.epam.esm.entity.CertificatePatch;
+import com.epam.esm.entity.CertificatesRequest;
 import com.epam.esm.entity.Tag;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public interface CertificateDao {
    * @param parameter the parameter
    * @return the list
    */
-  List<Certificate> readAll(GetParameter parameter);
+  List<Certificate> readAll(CertificatesRequest parameter);
 
   /**
    * Update int.
@@ -95,5 +96,5 @@ public interface CertificateDao {
    * @param certificate the certificate
    * @return the int
    */
-  int updatePatch(Certificate certificate);
+  int updatePatch(CertificatePatch certificate);
 }

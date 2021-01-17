@@ -2,27 +2,21 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.SqlHandler;
-import com.epam.esm.entity.Certificate;
-import com.epam.esm.entity.GetParameter;
-import com.epam.esm.entity.SqlData;
-import com.epam.esm.entity.Tag;
+import com.epam.esm.entity.*;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
-@Component
 public class CertificateDaoImpl implements CertificateDao {
   private static final String SQL_CREATE =
       "INSERT INTO gift_certificates(name,description,price,duration, create_date,last_update_date) VALUES (?,?,?,?,?,?)";
@@ -76,8 +70,8 @@ public class CertificateDaoImpl implements CertificateDao {
               connection.prepareStatement(SQL_CREATE, Statement.RETURN_GENERATED_KEYS);
           ps.setString(1, certificate.getName());
           ps.setString(2, certificate.getDescription());
-          ps.setDouble(3, certificate.getPrice());
-          ps.setInt(4, certificate.getDuration());
+          ps.setObject(3, certificate.getPrice());
+          ps.setObject(4, certificate.getDuration());
           ps.setObject(5, certificate.getCreateDate());
           ps.setObject(6, certificate.getLastUpdateDate());
           return ps;
@@ -93,7 +87,7 @@ public class CertificateDaoImpl implements CertificateDao {
   }
 
   @Override
-  public List<Certificate> readAll(GetParameter parameter) {
+  public List<Certificate> readAll(CertificatesRequest parameter) {
     SqlData sqlData = sqlHandler.generateSqlDataForReadAllRequest(parameter);
     return jdbcTemplate.query(
         sqlData.getRequest(), CERTIFICATE_ROW_MAPPER, sqlData.getArgs().toArray());
@@ -144,7 +138,7 @@ public class CertificateDaoImpl implements CertificateDao {
   }
 
   @Override
-  public int updatePatch(Certificate certificate) {
+  public int updatePatch(CertificatePatch certificate) {
     SqlData sqlData = sqlHandler.generateSqlDataForUpdateRequest(certificate);
     return jdbcTemplate.update(sqlData.getRequest(), sqlData.getArgs().toArray());
   }

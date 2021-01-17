@@ -4,7 +4,8 @@ import com.epam.esm.config.TestConfig;
 import com.epam.esm.dao.CertificateDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Certificate;
-import com.epam.esm.entity.GetParameter;
+import com.epam.esm.entity.CertificatePatch;
+import com.epam.esm.entity.CertificatesRequest;
 import com.epam.esm.entity.Tag;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class CertificateDaoImplTest {
     Certificate certificate2 = givenExistingCertificate2();
     List<Certificate> expectedList = List.of(certificate1, certificate2);
 
-    List<Certificate> actualList = certificateDao.readAll(new GetParameter());
+    List<Certificate> actualList = certificateDao.readAll(new CertificatesRequest());
     assertEquals(expectedList, actualList);
   }
 
@@ -170,7 +171,9 @@ class CertificateDaoImplTest {
   void updatePatch() {
     Certificate expectedCertificate = givenExistingCertificate1();
     expectedCertificate.setName("new name");
-    Certificate updateCertificate = Certificate.builder().id(1L).name("new name").build();
+    CertificatePatch updateCertificate = new CertificatePatch();
+    updateCertificate.setId(1L);
+    updateCertificate.setName("new name");
 
     certificateDao.updatePatch(updateCertificate);
 

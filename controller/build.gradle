@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.epam.esm'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 repositories {
     mavenCentral()
@@ -38,6 +38,11 @@ dependencies {
     providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
     implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.5.0'
     testImplementation group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
+    implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+    implementation group: 'org.hibernate.validator', name: 'hibernate-validator', version: '6.2.0.Final'
+    implementation group: 'org.glassfish', name: 'javax.el', version: '3.0.0'
+    testImplementation group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.30'
+    testImplementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.14.0'
 }
 
 test {
